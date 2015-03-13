@@ -1,4 +1,14 @@
 <p id="notice"><%= notice %></p>
 
+<p>
+  <strong>Track name:</strong>
+  <%= @track.track_name %>
+</p>
+
+<p>
+  <strong>Course count:</strong>
+  <%= @track.course_count %>
+</p>
+
 <%= link_to 'Edit', edit_track_path(@track) %> |
 <%= link_to 'Back', tracks_path %>
