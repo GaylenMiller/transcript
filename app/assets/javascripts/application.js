@@ -20,15 +20,24 @@
 $( document).ready( function () {
 	console.log("ready!");
 
-	var items = [];
+	var profileName;
+	var badges = [];
+	var badgesLoaded = false;
+	courses = [];
+	var coursesLoaded = false;
+	var profilePoints;
 
 
 	$("#generate-button").click( function() {
 		console.log("menu button clicked");
 
+		var profileUrl = $("#profile-url").val();
+		profileUrl = "http://teamtreehouse.com/" + profileUrl + ".json" 
+		console.log( "requesting " + profileUrl)
+
 		// Get the badges JSON database from the Team Treehouse web site.
-		$.getJSON( "http://teamtreehouse.com/gaylenmiller2.json", function( data ) {
-			profileShow( data['name'], data['badges'], data['points']);
+		$.getJSON( profileUrl, function( data ) {
+			badgesLoad( data['name'], data['badges'], data['points']);
   			// var items = [];
 			// $.each( data, function( key, val ) { 
 			// 	items.push( "<li id='" + key + "'>" + val + "</li>" );
@@ -37,57 +46,153 @@ $( document).ready( function () {
   			// $( "<ul/>", { "class": "my-new-list", html: items.join( "" ) }).appendTo( "body" );
 		});
 		console.log("ajax profile request sent");
+
+		// Get the courses from the web site.
+		$.getJSON( "/courses.json", coursesLoad );
+		console.log("ajax courses request sent");
 	});
+	// --------------------------------------------------------------------------------
+
 
 	// Function for doing the sort comparison for the badges sort.
 	function compareCourseEarnedDate( item1, item2) {
 		var result;
-		if (item1.course.toLowerCase() < item2.course.toLowerCase() ) {
+		if (item1.courseName.toLowerCase() < item2.courseName.toLowerCase() ) {
 			result = -1; // negative is lower
-		} else if (item1.course.toLowerCase() > item2.course.toLowerCase() ){
+		} else if (item1.courseName.toLowerCase() > item2.courseName.toLowerCase() ){
 			result = 1; // positive is higher
 		} else {
 			return item1.earnedDate - item2.earnedDate;
 		}
 		return result;
 	}
+	// --------------------------------------------------------------------------------
 
-	function profileShow( name, badges, points) {
-		console.log("ajax profile request received");
 
-		// Show the profile name
-		newText = name + ', ' + badges.length;
-		$("#badges-info").text(newText);
+	// Load the badges into the array.
+	function badgesLoad( name, items, points) {
+		console.log("ajax profile response received");
+		profileName = name;
+		profilePoints = points;
 
 		// Go through the badges and get a flat list with course name.
-		$.each( badges, function( index, badge ) { 
+		$.each( items, function( index, oneBadge ) { 
 
 			// Only record badges associated with courses.
-			courses = badge['courses'];
-			if (courses.length > 0) {
+			badgeCourses = oneBadge['courses'];
+			if (badgeCourses.length > 0) {
 				var one = {};
-				one.id = badge['id'];
-				one.name = badge['name'];
-				one.earnedDate = new Date(badge['earned_date']);
-				one.course =  courses[0]['title'];
-				items.push( one );
+				one.id = oneBadge['id'];
+				one.name = oneBadge['name'];
+				one.earnedDate = new Date(oneBadge['earned_date']);
+				one.courseName =  badgeCourses[0]['title'];
+				badges.push( one );
 			}
   		});
 
   		// Sort the list by course and earned date.
-  		items.sort( compareCourseEarnedDate);
+  		badges.sort( compareCourseEarnedDate);
+  		badgesLoaded = true;
 
+		// Call the function to display the status and trigger the transcript when ready.
+  		checkStatusShow();
+	};
+	// --------------------------------------------------------------------------------
+
+
+	// Call the transcript show function once all the data loads are complete.
+	function checkStatusShow() {
+
+		// If all the json requests are complete.
+		if ( badgesLoaded && coursesLoaded ) {
+			courseProgressTally();
+			transcriptShow();
+		}
+	}
+	// --------------------------------------------------------------------------------
+
+
+	// Show the transcript.
+	function transcriptShow() {
+
+		// Show the profile name
+		newText = profileName + ', ' + badges.length;
+		$("#badges-info").text(newText);
+
+		// Create a long string with the courses in table row html.
+		coursesHtml = "";
+		for( var offset = 0; offset < courses.length; offset++) {
+
+			// If there are any stages completed, include the course.
+			if (courses[offset].completed > 0) {
+				coursesHtml += "<tr><td>" + courses[offset].courseName + "</td><td>" + courses[offset].completed + " of " 
+				+ courses[offset].stageCount + "</td><td>" 
+				+ courses[offset].earnedDate.toLocaleDateString() + "</td></tr>";
+			}
+		}
+  		$( "<table>", { "class": "table table-striped", html: coursesHtml }).appendTo( "body" );
+
+		// Load the badge information into table rows.
   		var itemHtml = "";
-		$.each( items, function( index, item ) { 
-			// itemHtml += "<li id='" + item.id + "'>" + item.name + " &ndash; " + item.course + " " 
-			//+ item.earnedDate + "</li>";
-			itemHtml += "<tr id='" + item.id + "'><td>" + item.name + "</td><td>" + item.course + "</td><td>" 
+		$.each( badges, function( index, item ) { 
+			itemHtml += "<tr id='" + item.id + "'><td>" + item.name + "</td><td>" + item.courseName + "</td><td>" 
 			+ item.earnedDate.toLocaleDateString() + "</td></tr>";
 		});
  
  		// Create an unordered list with class and html specified. Then append that to the body.
   		// $( "<ul/>", { "class": "my-new-list", html: itemHtml }).appendTo( "body" );
-  		$( "<table>", { "class": "my-new-list", html: itemHtml }).appendTo( "body" );
-	};
+
+  		// Create a table and 
+  		$( "<table>", { "class": "table table-striped", html: itemHtml }).appendTo( "body" );
+	}
+	// --------------------------------------------------------------------------------
+
+
+	function coursesLoad( coursesJson) {
+		console.log("ajax courses response received");
+
+		// Get the needed columns and push that object on the array.
+		$.each( coursesJson, function( index, course) {
+			one = {};
+			one.courseName = course.course_name;
+			one.stageCount = course.stage_count;
+			one.completed = 0;
+			one.earnedDate = new Date(1900,0,1);
+
+			courses.push( one );
+		});
+
+		// Mark the course load as complete.
+		coursesLoaded = true;
+
+		// Call the function to display the status and trigger the transcript when ready.
+		checkStatusShow();
+	}
+	// --------------------------------------------------------------------------------
+
+
+	function courseProgressTally() {
+
+		// Go through the badges and record the number of stages completed.
+		var courseOffset = 0;
+		for (var offset = 0; offset < badges.length; offset++) {
+
+			// If the current course if before the current badge course, roll forward.
+			while ( courses[courseOffset].courseName.toLowerCase() < badges[offset].courseName.toLowerCase() ) {
+				courseOffset++;
+			}
+
+			// If this badge is part of the current course increment the completed count.
+			if ( courses[courseOffset].courseName == badges[offset].courseName) {
+				courses[courseOffset].completed += 1;
+
+				// Save the latest earned date as the courses earned date.
+				if ( courses[courseOffset].earnedDate < badges[offset].earnedDate) {
+					courses[courseOffset].earnedDate = badges[offset].earnedDate;
+				}
+			}
+		}
+	}
+	// --------------------------------------------------------------------------------
 
 });
