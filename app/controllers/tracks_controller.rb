@@ -4,7 +4,8 @@ class TracksController < ApplicationController
   # GET /tracks
   # GET /tracks.json
   def index
-    @tracks = Track.all
+    @tracks = Track.all.order(:track_name)
+    @track_courses = TrackCourse.all.order(:track_name, :course_order)
   end
 
   # GET /tracks/1

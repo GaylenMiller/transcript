@@ -1,4 +1,3 @@
-json.array!(@tracks) do |track|
-  json.extract! track, :id, :track_name, :course_count
-  json.url track_url(track, format: :json)
+json.array!(@track_courses) do |track_course|
+  json.extract! track_course, :course_name, :track_name, :course_order
 end
