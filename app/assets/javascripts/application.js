@@ -41,12 +41,6 @@ $( document).ready( function () {
 		// Get the badges JSON database from the Team Treehouse web site.
 		$.getJSON( profileUrl, function( data ) {
 			badgesLoad( data['name'], data['badges'], data['points']);
-  			// var items = [];
-			// $.each( data, function( key, val ) { 
-			// 	items.push( "<li id='" + key + "'>" + val + "</li>" );
-  			// });
- 
-  			// $( "<ul/>", { "class": "my-new-list", html: items.join( "" ) }).appendTo( "body" );
 		});
 		console.log("ajax profile request sent");
 
@@ -127,6 +121,18 @@ $( document).ready( function () {
 		newText = profileName + ', ' + badges.length;
 		$("#profile-header-name").text(newText);
 
+		// Create a long string with the tracks in a table.
+		tracksHtml = "<table class='table table-striped'>"
+		+ "<tr><th>Track Name</th><th>Progress</th><th>Last Activity On</th></tr>";
+		for( var offset = 0; offset < tracksWithProgress.length; offset++) {
+
+			// If there are any stages completed, include the course.
+			tracksHtml += "<tr><td>" + tracksWithProgress[offset].trackName + "</td><td>" 
+			+ tracksWithProgress[offset].coursesCompleted + " of " + tracksWithProgress[offset].coursesInTrack + "</td><td>" 
+			+ tracksWithProgress[offset].earnedDate.toLocaleDateString() + "</td></tr>";
+		}
+		$("#tracks-div").html( tracksHtml + "</table>");
+
 		// Create a long string with the courses in table row html.
 		coursesHtml = "<table class='table table-striped'>"
 		+ "<tr><th>Course Name</th><th>Progress</th><th>Last Activity On</th></tr>";
@@ -200,6 +206,9 @@ $( document).ready( function () {
 				if ( courses[courseOffset].earnedDate < badges[offset].earnedDate) {
 					courses[courseOffset].earnedDate = badges[offset].earnedDate;
 				}
+			} else {
+				console.log("Badge course not found in courses - " + badges[offset].courseName
+					+ ', current course ' + courses[courseOffset].courseName);
 			}
 		}
 		console.log("Course Progress Tally complete");
@@ -231,9 +240,18 @@ $( document).ready( function () {
 	// --------------------------------------------------------------------------------
 
 
-	// Return true if a course is completed.
+	// Return the index if a course is found.
 	function courseFind( courseName ) {
-		return -1;
+		var looking = 0;
+		while ((looking < courses.length) && (courses[looking].courseName !== courseName)) {
+			looking++;
+		}
+
+		// if the course was found.
+		if (looking < courses.length)
+			return looking;
+		else
+			return -1;
 	}
 	// --------------------------------------------------------------------------------
 
@@ -242,42 +260,20 @@ $( document).ready( function () {
 	function trackProgressTally() {
 
 		var coursesInTrack = 0;
-		var currentTrack = "";
+		var trackCoursesCompleted = 0;
+		var lastEarnedDate = new Date(1900,0,1);
 
 		// go through the task courses
 		for (var offset = 0; offset < tracks.length; offset++) {
 
-			// If this is a new track
-			if ( tracks[offset].trackName !== currentTrack) {
+			// Count the courses in the track
+			coursesInTrack++;
 
-				// If there was a previous task
-				if (currentTrack !== "") {
-
-					// Were any of the courses for this track completed?
-					if ( trackCoursesCompleted > 0) {
-
-						// Insert a row into tracks array with completed and course count.
-						one = {};
-						one.trackName = currentTrack;
-						one.coursesCompleted = trackCoursesCompleted;
-						one.courseInTrack = coursesInTrack;
-						one.earnedDate = lastEarnedDate;
-						tracksWithProgress.push( one);
-					}
-				}
-
-				// Save the current track and reset the completed count to zero.
-				currentTrack = tracks[offset].trackName;
-				coursesInTrack = 0;
-				trackCoursesCompleted = 0;
-				lastEarnedDate = new Date(1900,0,1);
-			}
-
-			// If this course is in the courses array. (Has the course been started or completed?)
+			// If this course is in the courses array, meaning the course been started or completed.
 			var courseOffset = courseFind(tracks[offset].courseName);
 			if ( courseOffset >= 0) {
 
-				// If the current course for this track were completed. (complete equals the count)
+				// If the current course for this track were completed. (completed equals the count)
 				if ( courses[courseOffset].completed ===  courses[courseOffset].stageCount) {
 
 					// Add it to the total of courses complete in the track.
@@ -290,8 +286,23 @@ $( document).ready( function () {
 				}
 			}
 
-			// Count the courses in the track
-			coursesInTrack++;
+
+			// If the accumulated information needs to be saved, if the next track is different or this is the last track.
+			if ( (offset === tracks.length - 1) || ( tracks[offset+1].trackName !== tracks[offset].trackName) ){
+
+				// Insert a row into tracks array with completed and course count.
+				one = {};
+				one.trackName = tracks[offset].trackName;
+				one.coursesCompleted = trackCoursesCompleted;
+				one.coursesInTrack = coursesInTrack;
+				one.earnedDate = lastEarnedDate;
+				tracksWithProgress.push( one);
+
+				// Save the current track and reset the completed count to zero.
+				coursesInTrack = 0;
+				trackCoursesCompleted = 0;
+				lastEarnedDate = new Date(1900,0,1);
+			}
 		}
 
 		console.log("Tracks Progress Tally Complete")

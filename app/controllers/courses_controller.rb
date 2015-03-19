@@ -4,7 +4,7 @@ class CoursesController < ApplicationController
   # GET /courses
   # GET /courses.json
   def index
-    @courses = Course.all.order(:course_name)
+    @courses = Course.all.order('lower(course_name) collate "C"')
   end
 
   # GET /courses/1
