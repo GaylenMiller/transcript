@@ -8,9 +8,29 @@
 
 </head>
 <body>
-	<%= render 'layouts/menu' %>
+	<%#= render 'layouts/menu' %>
 	<%= render 'layouts/flash_messages' %>
 	<div class="container">
+		<div class="row" >
+			<div class="col-md-4 col-lg-3">
+				<%= image_tag "certificate-icon-aqua.png", {class: "img-responsive"} %>
+			</div>
+			<div class="col-md-6 col-lg-8">
+				<h1>Transcript Generator</h1>
+				<h4>Treehouse Profile ID</h4>
+	        	<div class="form-group">
+          		<input id="profile-url" type="text" class="form-control" value="gaylenmiller2" placeholder="Treehouse Profile">
+	        	</div>
+   	     	<span type="submit" class="btn btn-success" id="generate-button">Generate</span>
+			</div>
+			<div class="col-md-2 col-lg-1">
+				<%= link_to new_admin_session_path do %>
+				<h1><span class="glyphicon glyphicon-cog"></span></h1>
+				<% end %>
+				<a href="/courses"><button type="button" class="btn btn-default btn-block">Courses</button></a>
+				<a href="/tracks"><button type="button" class="btn btn-default btn-block">Tracks</button></a>
+			</div>
+		</div>
 
 		<%= yield %>
 	</div> <!-- /container -->

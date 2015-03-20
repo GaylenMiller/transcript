@@ -1,11 +1,10 @@
 Rails.application.routes.draw do
   devise_for :admins
-  resources :tracks
 
+  resources :tracks
   resources :courses
 
   get 'static_pages/home'
-
   get 'static_pages/help'
 
   root 'static_pages#home'
