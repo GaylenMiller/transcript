@@ -13,7 +13,9 @@
 	<div class="container">
 		<div class="row" >
 			<div class="col-md-4 col-lg-3">
-				<%= image_tag "certificate-icon-aqua.png", {class: "img-responsive"} %>
+				<%= link_to static_pages_home_path do %>
+					<%= image_tag "certificate-icon-aqua.png", {class: "img-responsive"} %>
+				<% end %>
 			</div>
 			<div class="col-md-6 col-lg-8">
 				<h1>Transcript Generator</h1>
@@ -24,11 +26,21 @@
    	     	<span type="submit" class="btn btn-success" id="generate-button">Generate</span>
 			</div>
 			<div class="col-md-2 col-lg-1">
-				<%= link_to new_admin_session_path do %>
-				<h1><span class="glyphicon glyphicon-cog"></span></h1>
+				<%= link_to courses_path do %>
+					<h2 data-toggle="tooltip" data-placement="left" title="Courses"><span class="glyphicon glyphicon-book"></span></h2>
 				<% end %>
-				<a href="/courses"><button type="button" class="btn btn-default btn-block">Courses</button></a>
-				<a href="/tracks"><button type="button" class="btn btn-default btn-block">Tracks</button></a>
+				<%= link_to tracks_path do %>
+					<h2 data-toggle="tooltip" data-placement="left" title="Tracks"><span class="glyphicon glyphicon-list"></span></h2>
+				<% end %>
+				<% if admin_signed_in? %>
+					<%= link_to destroy_admin_session_path, {method: 'delete'} do %>
+						<h2 data-toggle="tooltip" data-placement="left" title="Admin Sign Out"><span class="glyphicon glyphicon-log-out"></span></h2>
+					<% end %>
+				<% else %>
+					<%= link_to new_admin_session_path do %>
+						<h2 data-toggle="tooltip" data-placement="left" title="Admin Sign In"><span class="glyphicon glyphicon-log-in"></span></h2>
+					<% end %>
+				<% end %>
 			</div>
 		</div>
 

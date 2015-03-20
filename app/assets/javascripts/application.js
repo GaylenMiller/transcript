@@ -17,8 +17,11 @@
 
 //= require_tree .
 
+
 $( document).ready( function () {
 	console.log("ready!");
+	
+  	$('[data-toggle="tooltip"]').tooltip();
 
 	var profileName;
 	var badges = [];
