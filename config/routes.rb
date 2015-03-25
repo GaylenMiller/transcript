@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :profile_requests
+
   devise_for :admins
 
   resources :tracks

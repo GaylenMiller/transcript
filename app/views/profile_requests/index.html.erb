@@ -1,0 +1,43 @@
+<h1>Listing profile_requests</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Profile</th>
+      <th>Request date</th>
+      <th>Badges finished</th>
+      <th>Total points</th>
+      <th>Courses started</th>
+      <th>Courses finished</th>
+      <th>Tracks started</th>
+      <th>Tracks finished</th>
+      <th>Points json</th>
+      <th>Process notes</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @profile_requests.each do |profile_request| %>
+      <tr>
+        <td><%= profile_request.profile_id %></td>
+        <td><%= profile_request.request_date %></td>
+        <td><%= profile_request.badges_finished %></td>
+        <td><%= profile_request.total_points %></td>
+        <td><%= profile_request.courses_started %></td>
+        <td><%= profile_request.courses_finished %></td>
+        <td><%= profile_request.tracks_started %></td>
+        <td><%= profile_request.tracks_finished %></td>
+        <td><%= profile_request.points_json %></td>
+        <td><%= profile_request.process_notes %></td>
+        <td><%= link_to 'Show', profile_request %></td>
+        <td><%= link_to 'Edit', edit_profile_request_path(profile_request) %></td>
+        <td><%= link_to 'Destroy', profile_request, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Profile request', new_profile_request_path %>

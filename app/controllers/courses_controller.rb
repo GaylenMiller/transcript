@@ -28,6 +28,8 @@ class CoursesController < ApplicationController
 
     respond_to do |format|
       if @course.save
+        AdminMailer.course_added_email(@course).deliver
+
         format.html { redirect_to @course, notice: 'Course was successfully created.' }
         format.json { render :show, status: :created, location: @course }
       else
@@ -42,6 +44,8 @@ class CoursesController < ApplicationController
   def update
     respond_to do |format|
       if @course.update(course_params)
+        AdminMailer.course_updated_email(@course).deliver
+
         format.html { redirect_to @course, notice: 'Course was successfully updated.' }
         format.json { render :show, status: :ok, location: @course }
       else
@@ -56,7 +60,7 @@ class CoursesController < ApplicationController
   def destroy
     @course.destroy
     respond_to do |format|
-      format.html { redirect_to courses_url, notice: 'Course was successfully destroyed.' }
+      format.html { redirect_to courses_url, notice: 'Course was successfully removed.' }
       format.json { head :no_content }
     end
   end

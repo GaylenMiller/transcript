@@ -1,0 +1,2 @@
+module ProfileRequestsHelper
+end

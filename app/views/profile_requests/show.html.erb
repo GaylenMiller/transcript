@@ -1,0 +1,54 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Profile:</strong>
+  <%= @profile_request.profile_id %>
+</p>
+
+<p>
+  <strong>Request date:</strong>
+  <%= @profile_request.request_date %>
+</p>
+
+<p>
+  <strong>Badges finished:</strong>
+  <%= @profile_request.badges_finished %>
+</p>
+
+<p>
+  <strong>Total points:</strong>
+  <%= @profile_request.total_points %>
+</p>
+
+<p>
+  <strong>Courses started:</strong>
+  <%= @profile_request.courses_started %>
+</p>
+
+<p>
+  <strong>Courses finished:</strong>
+  <%= @profile_request.courses_finished %>
+</p>
+
+<p>
+  <strong>Tracks started:</strong>
+  <%= @profile_request.tracks_started %>
+</p>
+
+<p>
+  <strong>Tracks finished:</strong>
+  <%= @profile_request.tracks_finished %>
+</p>
+
+<p>
+  <strong>Points json:</strong>
+  <%= @profile_request.points_json %>
+</p>
+
+<p>
+  <strong>Process notes:</strong>
+  <%= @profile_request.process_notes %>
+</p>
+
+<%= link_to 'Edit', edit_profile_request_path(@profile_request) %> |
+<%= link_to 'Back', profile_requests_path %>

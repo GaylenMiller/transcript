@@ -20,18 +20,28 @@
 
 $( document).ready( function () {
 	console.log("ready!");
-	
+
+	// Activate the bootstrap tooltips.
   	$('[data-toggle="tooltip"]').tooltip();
 
+  	// Variables for the data for the transcript.
 	var profileName;
-	var badges = [];
+	var profilePoints;
+
+	// The JSON badge data is parsed in badges[], it is sorted by course and then summarized in badgesWithProgress[]. 
+	badges = [];
+	coursesWithProgress = [];
 	var badgesLoaded = false;
+
+	// The JSON course data is loaded in courses[].
 	var courses = [];
 	var coursesLoaded = false;
+
+	// The JSON course data is loaded in tracks[]
 	var tracks = [];
-	var tracksLoaded = false;
 	var tracksWithProgress = [];
-	var profilePoints;
+	var tracksLoaded = false;
+
 
 
 	$("#generate-button").click( function() {
@@ -96,6 +106,34 @@ $( document).ready( function () {
 
   		// Sort the list by course and earned date.
   		badges.sort( compareCourseEarnedDate);
+
+
+  		// Go through the badges sorted by course and earned date.
+		var stagesCompleted = 0;
+
+		// go through the task courses
+		for (var offset = 0; offset < badges.length; offset++) {
+
+			// Count the badges in the course
+			stagesCompleted++;
+
+			// If the accumulated information needs to be saved, if the next course is different or this is the last badge.
+			if ( (offset === badges.length - 1) || ( badges[offset+1].courseName !== badges[offset].courseName) ){
+
+				// Insert a row into badges array with completed and course count.
+				var one = {};
+				one.courseName = badges[offset].courseName;
+				one.stagesCompleted = stagesCompleted;
+				one.earnedDate = badges[offset].earnedDate;
+				one.stageCount = 0;
+				coursesWithProgress.push( one);
+
+				// Save the current track and reset the completed count to zero.
+				stagesCompleted = 0;
+			}
+		}
+
+		// Mark the badge load as complete.
   		badgesLoaded = true;
 
 		// Call the function to display the status and trigger the transcript when ready.
@@ -121,7 +159,7 @@ $( document).ready( function () {
 	function transcriptShow() {
 
 		// Show the profile name
-		newText = profileName + ', ' + badges.length;
+		newText = profileName;
 		$("#profile-header-name").text(newText);
 
 		// Create a long string with the tracks in a table.
@@ -130,23 +168,23 @@ $( document).ready( function () {
 		for( var offset = 0; offset < tracksWithProgress.length; offset++) {
 
 			// If there are any stages completed, include the course.
-			tracksHtml += "<tr><td>" + tracksWithProgress[offset].trackName + "</td><td>" 
-			+ tracksWithProgress[offset].coursesCompleted + " of " + tracksWithProgress[offset].coursesInTrack + "</td><td>" 
-			+ tracksWithProgress[offset].earnedDate.toLocaleDateString() + "</td></tr>";
+			if ( tracksWithProgress[offset].coursesCompleted > 0) {
+				tracksHtml += "<tr><td>" + tracksWithProgress[offset].trackName + "</td><td>" 
+				+ tracksWithProgress[offset].coursesCompleted + " of " + tracksWithProgress[offset].coursesInTrack + "</td><td>" 
+				+ tracksWithProgress[offset].earnedDate.toLocaleDateString() + "</td></tr>";
+			}
 		}
 		$("#tracks-div").html( tracksHtml + "</table>");
 
 		// Create a long string with the courses in table row html.
 		coursesHtml = "<table class='table table-striped'>"
 		+ "<tr><th>Course Name</th><th>Progress</th><th>Last Activity On</th></tr>";
-		for( var offset = 0; offset < courses.length; offset++) {
+		for( var offset = 0; offset < coursesWithProgress.length; offset++) {
 
 			// If there are any stages completed, include the course.
-			if (courses[offset].completed > 0) {
-				coursesHtml += "<tr><td>" + courses[offset].courseName + "</td><td>" + courses[offset].completed + " of " 
-				+ courses[offset].stageCount + "</td><td>" 
-				+ courses[offset].earnedDate.toLocaleDateString() + "</td></tr>";
-			}
+			coursesHtml += "<tr><td>" + coursesWithProgress[offset].courseName + "</td><td>" 
+			+ coursesWithProgress[offset].stagesCompleted + " of " + coursesWithProgress[offset].stageCount 
+			+ "</td><td>" + coursesWithProgress[offset].earnedDate.toLocaleDateString() + "</td></tr>";
 		}
 		$("#courses-div").html( coursesHtml + "</table>");
 		// $( "<table>", { "class": "table table-striped", html: coursesHtml }).appendTo( "body" );
@@ -162,7 +200,7 @@ $( document).ready( function () {
   		// $( "<ul/>", { "class": "my-new-list", html: itemHtml }).appendTo( "body" );
 
   		// Create a table and 
-  		$( "<table>", { "class": "table table-striped", html: itemHtml }).appendTo( "body" );
+  		$( "<table>", { "class": "table table-striped", html: itemHtml }).appendTo( "#badges-div" );
 	}
 	// --------------------------------------------------------------------------------
 
@@ -172,11 +210,11 @@ $( document).ready( function () {
 
 		// Get the needed columns and push that object on the array.
 		$.each( coursesJson, function( index, course) {
-			one = {};
+			var one = {};
 			one.courseName = course.course_name;
 			one.stageCount = course.stage_count;
-			one.completed = 0;
-			one.earnedDate = new Date(1900,0,1);
+			// one.completed = 0;
+			// one.earnedDate = new Date(1900,0,1);
 
 			courses.push( one );
 		});
@@ -192,28 +230,35 @@ $( document).ready( function () {
 
 	function courseProgressTally() {
 
-		// Go through the badges and record the number of stages completed.
+
+		// Go through the course with progress array and find the number of stages in that course
 		var courseOffset = 0;
-		for (var offset = 0; offset < badges.length; offset++) {
+		for (var offset = 0; offset < coursesWithProgress.length; offset++) {
 
-			// If the current course if before the current badge course, roll forward.
-			while ( courses[courseOffset].courseName.toLowerCase() < badges[offset].courseName.toLowerCase() ) {
-				courseOffset++;
-			}
+			// If the course was found.
+			var course = coursesWithProgress[offset];
+			var index = courseFind( course.courseName );
+			if (index >= 0) {
 
-			// If this badge is part of the current course increment the completed count.
-			if ( courses[courseOffset].courseName == badges[offset].courseName) {
-				courses[courseOffset].completed += 1;
+				// Set the stage count.
+				coursesWithProgress[offset].stageCount = courses[index].stageCount;
 
-				// Save the latest earned date as the courses earned date.
-				if ( courses[courseOffset].earnedDate < badges[offset].earnedDate) {
-					courses[courseOffset].earnedDate = badges[offset].earnedDate;
-				}
+			// If the course was not found.
 			} else {
-				console.log("Badge course not found in courses - " + badges[offset].courseName
-					+ ', current course ' + courses[courseOffset].courseName);
+
+				// At this point, assume stage completed is the stage count.
+				coursesWithProgress[offset].stageCount = course.stagesCompleted;
+
+				// Add it to the database.
+				console.log("Adding missing course - " + course.courseName);
+				newCourse = {course: { course_name: course.courseName, stage_count: course.stagesCompleted }}
+				jQuery.post("/courses.json", newCourse);
+
+				// Add to the admin email that this happened.
+				// adminEmailAddLine("Adding missing course - " + course.courseName);
 			}
 		}
+
 		console.log("Course Progress Tally complete");
 	}
 	// --------------------------------------------------------------------------------
@@ -224,7 +269,7 @@ $( document).ready( function () {
 
 		// Get the needed columns and push that object on the array.
 		$.each( tracksJson, function( index, track) {
-			one = {};
+			var one = {};
 			one.courseName = track.course_name;
 			one.trackName = track.track_name;
 			one.courseOrder = track.course_order;
@@ -259,6 +304,21 @@ $( document).ready( function () {
 	// --------------------------------------------------------------------------------
 
 
+	function coursesWithProgressFind( courseName ) {
+		var looking = 0;
+		while ((looking < coursesWithProgress.length) && (coursesWithProgress[looking].courseName !== courseName)) {
+			looking++;
+		}
+
+		// if the course was found.
+		if (looking < coursesWithProgress.length)
+			return looking;
+		else
+			return -1;
+	}
+	// --------------------------------------------------------------------------------
+
+
 	// Go through all the tracks and build a list of tracks started and how many courses are completed.
 	function trackProgressTally() {
 
@@ -273,18 +333,18 @@ $( document).ready( function () {
 			coursesInTrack++;
 
 			// If this course is in the courses array, meaning the course been started or completed.
-			var courseOffset = courseFind(tracks[offset].courseName);
+			var courseOffset = coursesWithProgressFind(tracks[offset].courseName);
 			if ( courseOffset >= 0) {
 
 				// If the current course for this track were completed. (completed equals the count)
-				if ( courses[courseOffset].completed ===  courses[courseOffset].stageCount) {
+				if ( coursesWithProgress[courseOffset].stagesCompleted ===  coursesWithProgress[courseOffset].stageCount) {
 
 					// Add it to the total of courses complete in the track.
 					trackCoursesCompleted++;
 
 					// Save the latest earned date as the tracks earned date.
-					if ( lastEarnedDate < courses[courseOffset].earnedDate) {
-						lastEarnedDate = courses[courseOffset].earnedDate;
+					if ( lastEarnedDate < coursesWithProgress[courseOffset].earnedDate) {
+						lastEarnedDate = coursesWithProgress[courseOffset].earnedDate;
 					}
 				}
 			}
@@ -294,7 +354,7 @@ $( document).ready( function () {
 			if ( (offset === tracks.length - 1) || ( tracks[offset+1].trackName !== tracks[offset].trackName) ){
 
 				// Insert a row into tracks array with completed and course count.
-				one = {};
+				var one = {};
 				one.trackName = tracks[offset].trackName;
 				one.coursesCompleted = trackCoursesCompleted;
 				one.coursesInTrack = coursesInTrack;

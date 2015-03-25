@@ -1,0 +1,25 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  profile_id: MyString
+  request_date: 2015-03-24
+  badges_finished: 1
+  total_points: 1
+  courses_started: 1
+  courses_finished: 1
+  tracks_started: 1
+  tracks_finished: 1
+  points_json: MyString
+  process_notes: MyString
+
+two:
+  profile_id: MyString
+  request_date: 2015-03-24
+  badges_finished: 1
+  total_points: 1
+  courses_started: 1
+  courses_finished: 1
+  tracks_started: 1
+  tracks_finished: 1
+  points_json: MyString
+  process_notes: MyString
